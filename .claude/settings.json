@@ -1,0 +1,42 @@
+{
+  "allowedTools": [
+    "Edit",
+    "Bash(pnpm run:*)",
+    "Bash(git commit:*)",
+    "Bash(docker compose:*)",
+    "Bash(npm run:*)",
+    "Bash(yarn:*)",
+    "Bash(claude:*)",
+    "Bash(gh:*)",
+    "Bash(prisma:*)",
+    "Bash(turbo:*)"
+  ],
+  "projectSettings": {
+    "defaultModel": "claude-3-5-sonnet-20241022",
+    "autoSave": true,
+    "formatOnSave": true,
+    "lintOnSave": true,
+    "testOnSave": false
+  },
+  "workflowSettings": {
+    "tdd": true,
+    "conventionalCommits": true,
+    "preCommitHooks": true,
+    "autoLint": true,
+    "autoTypeCheck": true
+  },
+  "mcpSettings": {
+    "autoConnect": true,
+    "servers": [
+      "github",
+      "sentry",
+      "figma"
+    ]
+  },
+  "codeStyle": {
+    "typescript": "strict",
+    "prettier": true,
+    "eslint": "airbnb-typescript",
+    "tailwind": true
+  }
+}
