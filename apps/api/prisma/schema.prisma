@@ -1,0 +1,517 @@
+// This is your Prisma schema file for RFFL_codex_DB
+// Fantasy Football Historical Database Schema
+// Optimized for ESPN Fantasy Football API data ingestion
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// LEAGUE MANAGEMENT TABLES
+// ============================================================================
+
+model League {
+  id               String   @id @default(uuid())
+  espnLeagueId     Int      @unique @map("espn_league_id")
+  name             String
+  createdYear      Int      @map("created_year")
+  leagueType       String   @default("standard") @map("league_type")
+  visibility       String   @default("private")
+  status           String   @default("active")
+  description      String?
+  logoUrl          String?  @map("logo_url")
+  dataQualityScore Float    @default(0) @map("data_quality_score")
+  lastUpdated      DateTime @default(now()) @map("last_updated")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  seasons        Season[]
+  leagueSettings LeagueSettings[]
+  teams          Team[]
+  transactions   Transaction[]
+
+  @@map("leagues")
+  @@index([espnLeagueId])
+  @@index([status], name: "idx_leagues_status")
+  @@index([createdYear], name: "idx_leagues_created_year")
+  @@index([dataQualityScore], name: "idx_leagues_data_quality")
+}
+
+model LeagueSettings {
+  id          String @id @default(uuid())
+  leagueId    String @map("league_id")
+  seasonYear  Int    @map("season_year")
+  teamCount   Int    @default(10) @map("team_count")
+  playoffTeams Int   @default(6) @map("playoff_teams")
+  regularSeasonWeeks Int @default(14) @map("regular_season_weeks")
+  playoffWeeks Int   @default(3) @map("playoff_weeks")
+
+  // Scoring configuration
+  scoringType   String @default("standard") @map("scoring_type")
+  qbScoring     String @default("{}") @map("qb_scoring")
+  rbScoring     String @default("{}") @map("rb_scoring")
+  wrScoring     String @default("{}") @map("wr_scoring")
+  teScoring     String @default("{}") @map("te_scoring")
+  kScoring      String @default("{}") @map("k_scoring")
+  defScoring    String @default("{}") @map("def_scoring")
+
+  // Roster configuration
+  rosterPositions String @default("{}") @map("roster_positions")
+  benchSpots      Int  @default(6) @map("bench_spots")
+  irSpots         Int  @default(0) @map("ir_spots")
+
+  // League rules
+  waiverType        String @default("rolling") @map("waiver_type")
+  waiverPeriodDays  Int    @default(2) @map("waiver_period_days")
+  tradeDeadlineWeek Int?   @map("trade_deadline_week")
+  acquisitionBudget Int?   @default(100) @map("acquisition_budget")
+  draftType         String @default("snake") @map("draft_type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@unique([leagueId, seasonYear])
+  @@map("league_settings")
+  @@index([seasonYear], name: "idx_league_settings_season")
+  @@index([scoringType], name: "idx_league_settings_scoring_type")
+}
+
+// ============================================================================
+// SEASON AND TIME STRUCTURE
+// ============================================================================
+
+model Season {
+  id           String    @id @default(uuid())
+  leagueId     String    @map("league_id")
+  year         Int
+  startDate    DateTime  @map("start_date")
+  endDate      DateTime  @map("end_date")
+  isComplete   Boolean   @default(false) @map("is_complete")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relationships
+  league      League       @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  weeks       Week[]
+  teamSeasons TeamSeason[]
+
+  @@unique([leagueId, year])
+  @@map("seasons")
+  @@index([year], name: "idx_seasons_year")
+  @@index([isComplete], name: "idx_seasons_complete")
+}
+
+model Week {
+  id         String    @id @default(uuid())
+  seasonId   String    @map("season_id")
+  weekNumber Int       @map("week_number")
+  weekType   String    @default("regular") @map("week_type")
+  startDate  DateTime  @map("start_date")
+  endDate    DateTime  @map("end_date")
+  isComplete Boolean   @default(false) @map("is_complete")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  // Relationships
+  season          Season            @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  matchups        Matchup[]
+  playerWeekStats PlayerWeekStats[]
+  rosters         Roster[]
+
+  @@unique([seasonId, weekNumber])
+  @@map("weeks")
+  @@index([weekNumber], name: "idx_weeks_number")
+  @@index([weekType], name: "idx_weeks_type")
+  @@index([isComplete], name: "idx_weeks_complete")
+}
+
+// ============================================================================
+// TEAM MANAGEMENT
+// ============================================================================
+
+model Team {
+  id           String    @id @default(uuid())
+  espnTeamId   Int       @map("espn_team_id")
+  leagueId     String    @map("league_id")
+  name         String
+  abbreviation String?
+  logoUrl      String?   @map("logo_url")
+  ownerName    String?   @map("owner_name")
+  coOwnerNames String?  @map("co_owner_names") // JSON array stored as string
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relationships
+  league            League              @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teamSeasons       TeamSeason[]
+  homeMatchups      Matchup[]           @relation("HomeTeam")
+  awayMatchups      Matchup[]           @relation("AwayTeam")
+  winnerMatchups    Matchup[]           @relation("WinnerTeam")
+  proposingTrades   Transaction[]       @relation("ProposingTeam")
+  acceptingTrades   Transaction[]       @relation("AcceptingTeam")
+
+  @@unique([leagueId, espnTeamId])
+  @@map("teams")
+  @@index([espnTeamId], name: "idx_teams_espn_id")
+  @@index([ownerName], name: "idx_teams_owner")
+}
+
+model TeamSeason {
+  id                 String   @id @default(uuid())
+  teamId             String   @map("team_id")
+  leagueId           String   @map("league_id")
+  seasonYear         Int      @map("season_year")
+  finalStanding      Int?     @map("final_standing")
+  regularSeasonWins  Int      @default(0) @map("regular_season_wins")
+  regularSeasonLosses Int     @default(0) @map("regular_season_losses")
+  regularSeasonTies  Int      @default(0) @map("regular_season_ties")
+  pointsFor          Float    @default(0.00) @map("points_for")
+  pointsAgainst      Float    @default(0.00) @map("points_against")
+  playoffResult      String?  @map("playoff_result")
+  acquisitionBudget  Int      @default(0) @map("acquisition_budget")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  team     Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  season   Season       @relation(fields: [leagueId, seasonYear], references: [leagueId, year], onDelete: Cascade)
+  rosters  Roster[]
+  transactions Transaction[]
+
+  @@unique([teamId, seasonYear])
+  @@map("team_seasons")
+  @@index([leagueId, seasonYear], name: "idx_team_seasons_league_year")
+  @@index([finalStanding], name: "idx_team_seasons_standing")
+  @@index([pointsFor], name: "idx_team_seasons_points_for")
+}
+
+// ============================================================================
+// PLAYER DATA
+// ============================================================================
+
+model Player {
+  id              String   @id @default(uuid())
+  espnPlayerId    Int      @unique @map("espn_player_id")
+  name            String
+  position        String
+  team            String? // NFL team abbreviation
+  jerseyNumber    Int?     @map("jersey_number")
+  status          String   @default("active")
+  injuryStatus    String?  @map("injury_status")
+  byeWeek         Int?     @map("bye_week")
+  
+  // Physical attributes (optional)
+  heightInches    Int?     @map("height_inches")
+  weightLbs       Int?     @map("weight_lbs")
+  age             Int?
+  experienceYears Int?     @map("experience_years")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  weeklyStats     PlayerWeekStats[]
+  rosters         Roster[]
+  transactionPlayers TransactionPlayer[]
+
+  @@map("players")
+  @@index([espnPlayerId], name: "idx_players_espn_id")
+  @@index([position], name: "idx_players_position")
+  @@index([team], name: "idx_players_team")
+  @@index([name], name: "idx_players_name")
+}
+
+model PlayerWeekStats {
+  id             String    @id @default(uuid())
+  playerId       String    @map("player_id")
+  seasonYear     Int       @map("season_year")
+  weekNumber     Int       @map("week_number")
+  weekId         String?   @map("week_id")
+  
+  // Game context
+  opponent       String?
+  gameDate       DateTime? @map("game_date")
+  isHome         Boolean?  @map("is_home")
+  gameResult     String?   @map("game_result")
+  
+  // Fantasy performance
+  fantasyPoints     Float    @default(0.00) @map("fantasy_points")
+  projectedPoints   Float?   @map("projected_points")
+  
+  // Detailed statistics stored as JSON strings for flexibility
+  passingStats      String   @default("{}") @map("passing_stats")
+  rushingStats      String   @default("{}") @map("rushing_stats")
+  receivingStats    String   @default("{}") @map("receiving_stats")
+  kickingStats      String   @default("{}") @map("kicking_stats")
+  defenseStats      String   @default("{}") @map("defense_stats")
+  
+  // Data quality indicators
+  isProjected       Boolean  @default(false) @map("is_projected")
+  dataSource        String   @default("espn") @map("data_source")
+  confidenceScore   Float?   @default(100) @map("confidence_score")
+  anomalyFlags      String?  @map("anomaly_flags") // JSON array stored as string
+  lastVerified      DateTime @default(now()) @map("last_verified")
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  
+  // Relationships
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  week   Week?  @relation(fields: [weekId], references: [id])
+
+  @@unique([playerId, seasonYear, weekNumber])
+  @@map("player_week_stats")
+  @@index([playerId, seasonYear], name: "idx_player_stats_player_season")
+  @@index([seasonYear, weekNumber], name: "idx_player_stats_week")
+  @@index([fantasyPoints], name: "idx_player_stats_points")
+  @@index([dataSource], name: "idx_player_stats_source")
+  @@index([lastVerified], name: "idx_player_stats_verified")
+}
+
+// ============================================================================
+// MATCHUPS AND COMPETITION
+// ============================================================================
+
+model Matchup {
+  id           String   @id @default(uuid())
+  weekId       String   @map("week_id")
+  homeTeamId   String   @map("home_team_id")
+  awayTeamId   String   @map("away_team_id")
+  
+  // Scoring
+  homeScore    Float    @default(0.00) @map("home_score")
+  awayScore    Float    @default(0.00) @map("away_score")
+  
+  // Matchup metadata
+  matchupType  String   @default("regular") @map("matchup_type")
+  isComplete   Boolean  @default(false) @map("is_complete")
+  winnerTeamId String?  @map("winner_team_id")
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  week        Week @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  homeTeam    Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam    Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  winnerTeam  Team? @relation("WinnerTeam", fields: [winnerTeamId], references: [id])
+
+  @@map("matchups")
+  @@index([weekId], name: "idx_matchups_week")
+  @@index([homeTeamId, awayTeamId], name: "idx_matchups_teams")
+  @@index([matchupType], name: "idx_matchups_type")
+  @@index([isComplete], name: "idx_matchups_complete")
+}
+
+// ============================================================================
+// ROSTER MANAGEMENT
+// ============================================================================
+
+model Roster {
+  id               String   @id @default(uuid())
+  teamSeasonId     String   @map("team_season_id")
+  playerId         String   @map("player_id")
+  weekId           String   @map("week_id")
+  
+  // Roster details
+  rosterSlot       String   @map("roster_slot")
+  isStarter        Boolean  @default(false) @map("is_starter")
+  isCaptain        Boolean  @default(false) @map("is_captain")
+  
+  // Performance tracking
+  pointsScored     Float    @default(0.00) @map("points_scored")
+  projectedPoints  Float    @default(0.00) @map("projected_points")
+  
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  teamSeason TeamSeason @relation(fields: [teamSeasonId], references: [id], onDelete: Cascade)
+  player     Player     @relation(fields: [playerId], references: [id])
+  week       Week       @relation(fields: [weekId], references: [id], onDelete: Cascade)
+
+  @@unique([teamSeasonId, playerId, weekId])
+  @@map("rosters")
+  @@index([teamSeasonId, weekId], name: "idx_rosters_team_week")
+  @@index([isStarter], name: "idx_rosters_starters")
+  @@index([rosterSlot], name: "idx_rosters_slot")
+}
+
+// ============================================================================
+// TRANSACTIONS AND TRADES
+// ============================================================================
+
+model Transaction {
+  id                  String    @id @default(uuid())
+  leagueId            String    @map("league_id")
+  seasonYear          Int       @map("season_year")
+  weekNumber          Int?      @map("week_number")
+  
+  // Transaction details
+  transactionType     String    @map("transaction_type")
+  transactionDate     DateTime  @map("transaction_date")
+  espnTransactionId   BigInt?   @map("espn_transaction_id")
+  
+  // Teams involved
+  proposingTeamId     String?   @map("proposing_team_id")
+  acceptingTeamId     String?   @map("accepting_team_id")
+  
+  // Transaction metadata
+  status              String    @default("completed")
+  waiverPriority      Int?      @map("waiver_priority")
+  bidAmount           Int?      @map("bid_amount")
+  notes               String?
+  
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relationships
+  league         League              @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  proposingTeam  Team?               @relation("ProposingTeam", fields: [proposingTeamId], references: [id])
+  acceptingTeam  Team?               @relation("AcceptingTeam", fields: [acceptingTeamId], references: [id])
+  players        TransactionPlayer[]
+  proposingTeamSeason TeamSeason?    @relation(fields: [proposingTeamId, seasonYear], references: [teamId, seasonYear])
+
+  @@map("transactions")
+  @@index([leagueId, seasonYear], name: "idx_transactions_league_season")
+  @@index([transactionDate], name: "idx_transactions_date")
+  @@index([transactionType], name: "idx_transactions_type")
+  @@index([espnTransactionId], name: "idx_transactions_espn_id")
+}
+
+model TransactionPlayer {
+  id            String @id @default(uuid())
+  transactionId String @map("transaction_id")
+  playerId      String @map("player_id")
+  fromTeamId    String? @map("from_team_id")
+  toTeamId      String? @map("to_team_id")
+  movementType  String @map("movement_type")
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  player      Player      @relation(fields: [playerId], references: [id])
+
+  @@map("transaction_players")
+  @@index([transactionId], name: "idx_transaction_players_transaction")
+  @@index([playerId], name: "idx_transaction_players_player")
+  @@index([movementType], name: "idx_transaction_players_movement")
+}
+
+// ============================================================================
+// DATA QUALITY AND AUDIT TABLES
+// ============================================================================
+
+model DataIngestionJob {
+  id              String    @id @default(uuid())
+  jobType         String    @map("job_type")
+  leagueId        String?   @map("league_id")
+  seasonYear      Int?      @map("season_year")
+  weekNumber      Int?      @map("week_number")
+  status          String    @default("pending")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  recordsProcessed Int      @default(0) @map("records_processed")
+  errorsCount     Int       @default(0) @map("errors_count")
+  successRate     Float?    @map("success_rate")
+  qualityScore    Float?    @map("quality_score")
+  metadata        String    @default("{}")
+  errorMessages   String?   @map("error_messages") // JSON array stored as string
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("data_ingestion_jobs")
+  @@index([status], name: "idx_ingestion_jobs_status")
+  @@index([jobType], name: "idx_ingestion_jobs_type")
+  @@index([leagueId], name: "idx_ingestion_jobs_league")
+  @@index([startedAt], name: "idx_ingestion_jobs_started")
+}
+
+model DataQualityReport {
+  id                  String   @id @default(uuid())
+  leagueId            String   @map("league_id")
+  seasonYear          Int      @map("season_year")
+  reportType          String   @map("report_type")
+  overallScore        Float    @map("overall_score")
+  completenessScore   Float    @map("completeness_score")
+  accuracyScore       Float    @map("accuracy_score")
+  consistencyScore    Float    @map("consistency_score")
+  timelinessScore     Float    @map("timeliness_score")
+  validityScore       Float    @map("validity_score")
+  qualityGrade        String   @map("quality_grade")
+  issuesFound         String   @default("[]") @map("issues_found") // JSON array stored as string
+  recommendedActions  String   @default("[]") @map("recommended_actions") // JSON array stored as string
+  
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@map("data_quality_reports")
+  @@index([leagueId, seasonYear], name: "idx_quality_reports_league_season")
+  @@index([overallScore], name: "idx_quality_reports_score")
+  @@index([qualityGrade], name: "idx_quality_reports_grade")
+  @@index([createdAt], name: "idx_quality_reports_created")
+}
+
+model SystemMetrics {
+  id                String   @id @default(uuid())
+  metricType        String   @map("metric_type")
+  metricName        String   @map("metric_name")
+  value             Float
+  labels            String   @default("{}") // JSON object stored as string
+  timestamp         DateTime
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("system_metrics")
+  @@index([metricType, metricName], name: "idx_metrics_type_name")
+  @@index([timestamp], name: "idx_metrics_timestamp")
+}
+
+// ============================================================================
+// MATERIALIZED VIEWS FOR PERFORMANCE
+// Note: These would be created via raw SQL migrations
+// ============================================================================
+
+// CREATE MATERIALIZED VIEW player_season_summary AS
+// SELECT 
+//   p.id as player_id,
+//   p.name,
+//   p.position,
+//   pws.season_year,
+//   COUNT(*) as games_played,
+//   SUM(pws.fantasy_points) as total_fantasy_points,
+//   AVG(pws.fantasy_points) as avg_fantasy_points,
+//   STDDEV(pws.fantasy_points) as fantasy_points_stddev,
+//   MIN(pws.fantasy_points) as min_fantasy_points,
+//   MAX(pws.fantasy_points) as max_fantasy_points,
+//   PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY pws.fantasy_points) as median_fantasy_points
+// FROM players p
+// JOIN player_week_stats pws ON p.id = pws.player_id
+// WHERE pws.fantasy_points > 0
+// GROUP BY p.id, p.name, p.position, pws.season_year;
+
+// CREATE MATERIALIZED VIEW league_standings AS
+// SELECT 
+//   ts.league_id,
+//   ts.season_year,
+//   ts.team_id,
+//   t.name as team_name,
+//   ts.regular_season_wins,
+//   ts.regular_season_losses,
+//   ts.regular_season_ties,
+//   ts.points_for,
+//   ts.points_against,
+//   (ts.points_for - ts.points_against) as point_differential,
+//   ts.final_standing,
+//   RANK() OVER (PARTITION BY ts.league_id, ts.season_year ORDER BY ts.regular_season_wins DESC, ts.points_for DESC) as calculated_standing
+// FROM team_seasons ts
+// JOIN teams t ON ts.team_id = t.id
+// WHERE ts.season_year IS NOT NULL;

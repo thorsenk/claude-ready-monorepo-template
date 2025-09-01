@@ -1,0 +1,443 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Enhanced Fantasy Sports Design System */
+    --background: 0 0% 100%;
+    --foreground: 216 19% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 216 19% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 19% 16%;
+    
+    /* Professional Fantasy Color Palette */
+    --primary: 258 90% 66%; /* Vibrant purple for fantasy theme */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 32% 17%; /* Deep navy */
+    --secondary-foreground: 0 0% 100%;
+    --tertiary: 197 37% 24%; /* Professional teal */
+    --tertiary-foreground: 0 0% 100%;
+    
+    /* Neutral System */
+    --muted: 220 13% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 217 91% 60%; /* Bright blue accent */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Semantic Colors */
+    --success: 158 64% 52%; /* Victory green */
+    --success-foreground: 0 0% 100%;
+    --warning: 43 96% 56%; /* Championship gold */
+    --warning-foreground: 222 84% 5%;
+    --destructive: 0 72% 51%; /* Loss red */
+    --destructive-foreground: 0 0% 100%;
+    --info: 212 100% 48%; /* Information blue */
+    --info-foreground: 0 0% 100%;
+    
+    /* UI Elements */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 258 90% 66%;
+    --radius: 0.75rem;
+    
+    /* Enhanced Chart Colors */
+    --chart-1: 258 90% 66%; /* Primary purple */
+    --chart-2: 158 64% 52%; /* Success green */
+    --chart-3: 43 96% 56%; /* Championship gold */
+    --chart-4: 212 100% 48%; /* Info blue */
+    --chart-5: 0 72% 51%; /* Destructive red */
+    --chart-6: 197 37% 24%; /* Professional teal */
+    --chart-7: 271 81% 56%; /* Deep purple */
+    --chart-8: 24 70% 56%; /* Orange accent */
+    
+    /* Gradient Variables */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--tertiary)) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(158 64% 42%) 100%);
+    --gradient-warning: linear-gradient(135deg, hsl(var(--warning)) 0%, hsl(43 96% 46%) 100%);
+    
+    /* Shadow System */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.15);
+    
+    /* Spacing Scale */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+  }
+
+  .dark {
+    --background: 216 28% 7%;
+    --foreground: 213 31% 91%;
+    --card: 216 28% 9%;
+    --card-foreground: 213 31% 91%;
+    --popover: 216 28% 9%;
+    --popover-foreground: 213 31% 91%;
+    
+    /* Dark theme fantasy colors */
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 19% 27%;
+    --secondary-foreground: 213 31% 91%;
+    --tertiary: 197 37% 34%;
+    --tertiary-foreground: 213 31% 91%;
+    
+    --muted: 215 28% 17%;
+    --muted-foreground: 217 10% 65%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    
+    --success: 158 64% 52%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 222 84% 5%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --info: 212 100% 58%;
+    --info-foreground: 0 0% 100%;
+    
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 258 90% 66%;
+    
+    /* Dark theme shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer components {
+  /* Professional Fantasy Sports Components */
+  
+  /* Gradient System */
+  .fantasy-gradient {
+    background: var(--gradient-primary);
+  }
+  
+  .fantasy-gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+  
+  .success-gradient {
+    background: var(--gradient-success);
+  }
+  
+  .warning-gradient {
+    background: var(--gradient-warning);
+  }
+  
+  /* Enhanced Interactive Elements */
+  .stat-card-hover {
+    @apply transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1;
+    box-shadow: var(--shadow-base);
+  }
+  
+  .stat-card-hover:hover {
+    box-shadow: var(--shadow-xl);
+  }
+  
+  .championship-glow {
+    position: relative;
+    box-shadow: var(--shadow-glow), 0 0 40px hsl(var(--warning) / 0.2);
+    border: 1px solid hsl(var(--warning) / 0.3);
+  }
+  
+  .championship-glow::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: var(--gradient-warning);
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0.1;
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+  }
+  
+  /* Advanced Loading States */
+  .loading-shimmer {
+    background: linear-gradient(
+      110deg,
+      hsl(var(--muted)) 8%,
+      hsl(var(--muted) / 0.2) 18%,
+      hsl(var(--muted)) 33%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+  
+  .loading-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Chart & Data Visualization */
+  .chart-tooltip {
+    @apply bg-card/95 backdrop-blur-sm border border-border/50 shadow-xl rounded-xl p-4;
+  }
+  
+  .chart-container {
+    @apply relative overflow-hidden rounded-xl;
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.3) 100%);
+  }
+  
+  /* Navigation Enhancements */
+  .nav-link {
+    @apply relative overflow-hidden transition-all duration-300 ease-out;
+  }
+  
+  .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .nav-link:hover::before {
+    left: 100%;
+  }
+  
+  .nav-link.active {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--primary) / 0.05) 100%);
+    border-left: 3px solid hsl(var(--primary));
+  }
+  
+  /* Button Enhancements */
+  .btn-primary {
+    @apply relative overflow-hidden transition-all duration-300;
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-base);
+  }
+  
+  .btn-primary:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+  }
+  
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, hsl(var(--primary-foreground) / 0.3) 0%, transparent 70%);
+    transition: all 0.3s ease;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+  }
+  
+  .btn-primary:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  /* Typography Enhancements */
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-secondary {
+    background: var(--gradient-secondary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Animations */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  
+  @keyframes pulse-glow {
+    from {
+      opacity: 0.1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0.3;
+      transform: scale(1.01);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+  
+  /* Responsive Grid System */
+  .dashboard-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+  
+  .dashboard-grid-2 {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+  
+  /* Performance Optimizations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  .optimized-scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+  }
+  
+  /* Accessibility Enhancements */
+  .keyboard-navigation *:focus {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+  
+  .keyboard-navigation *:focus:not(:focus-visible) {
+    outline: none;
+  }
+  
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    
+    .animate-float,
+    .animate-pulse,
+    .animate-bounce,
+    .animate-spin {
+      animation: none !important;
+    }
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --border: 0 0% 20%;
+      --ring: var(--primary);
+    }
+    
+    .dark {
+      --border: 0 0% 80%;
+    }
+  }
+  
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    * {
+      background: white !important;
+      color: black !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+    
+    a:after {
+      content: " (" attr(href) ")";
+    }
+  }
+  
+  /* Fantasy-specific UI Elements */
+  .trophy-badge {
+    @apply relative;
+  }
+  
+  .trophy-badge::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: hsl(var(--warning));
+    border-radius: 50%;
+    animation: pulse-glow 1s ease-in-out infinite alternate;
+  }
+  
+  .performance-meter {
+    @apply relative h-2 w-full overflow-hidden rounded-full bg-muted;
+  }
+  
+  .performance-meter::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: inherit;
+    animation: slide-progress 1s ease-out;
+  }
+  
+  @keyframes slide-progress {
+    from { width: 0; }
+    to { width: var(--progress, 50%); }
+  }
+}
